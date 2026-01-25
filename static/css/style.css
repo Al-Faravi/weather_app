@@ -1,3 +1,4 @@
+/* মেইন সেটআপ */
 * {
     margin: 0;
     padding: 0;
@@ -5,44 +6,53 @@
     font-family: 'Poppins', sans-serif;
 }
 
+/* আবহাওয়া অনুযায়ী ডাইনামিক ব্যাকগ্রাউন্ড থিম */
 body {
-    background: linear-gradient(135deg, #1e3c72, #2a5298); /* ডিপ ব্লু লাক্সারি গ্রেডিয়েন্ট */
     min-height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
     padding: 20px;
     color: white;
+    transition: background 0.8s ease; /* স্মুথ থিম ট্রানজিশন */
+    background: #1e3c72; /* ডিফল্ট ব্যাকগ্রাউন্ড */
 }
+
+/* ডাইনামিক থিম ক্লাসসমূহ */
+body.clear { background: linear-gradient(135deg, #f7b733, #7c1c01); }
+body.clouds { background: linear-gradient(135deg, #757f9a, #2c3e50); }
+body.rain, body.drizzle { background: linear-gradient(135deg, #000046, #1cb5e0); }
+body.thunderstorm { background: linear-gradient(135deg, #141e30, #243b55); }
+body.snow { background: linear-gradient(135deg, #83a4d4, #b6fbff); }
+body.mist, body.haze, body.fog { background: linear-gradient(135deg, #606c88, #3f4c6b); }
 
 .weather-card {
     background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(15px);
+    backdrop-filter: blur(20px);
     padding: 40px 30px;
-    border-radius: 30px;
+    border-radius: 35px;
     width: 100%;
-    max-width: 450px;
+    max-width: 500px; /* ৫ দিনের পূর্বাভাসের জন্য একটু বড় করা হয়েছে */
     text-align: center;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* ঘড়ি ও তারিখ */
-.date-time {
-    margin-bottom: 20px;
-}
-.date-time p { font-size: 14px; opacity: 0.8; }
-.date-time h3 { font-size: 22px; font-weight: 400; }
+/* তারিখ ও ঘড়ি */
+.date-time { margin-bottom: 25px; }
+.date-time p { font-size: 14px; opacity: 0.8; letter-spacing: 1px; }
+.date-time h3 { font-size: 24px; font-weight: 400; margin-top: 5px; }
 
-.title { margin-bottom: 25px; letter-spacing: 1px; font-weight: 600; }
+.title { margin-bottom: 30px; letter-spacing: 2px; text-transform: uppercase; font-size: 20px; }
 
-/* সার্চ বার */
+/* স্মার্ট সার্চ বার */
 .search-form {
     display: flex;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 15px;
-    padding: 5px;
-    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    padding: 6px;
+    margin-bottom: 35px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 .input-group {
     display: flex;
@@ -50,6 +60,7 @@ body {
     padding-left: 15px;
     flex: 1;
 }
+.input-group i { color: rgba(255, 255, 255, 0.7); }
 input {
     background: transparent;
     border: none;
@@ -57,65 +68,107 @@ input {
     color: white;
     padding: 10px;
     width: 100%;
+    font-size: 15px;
 }
-input::placeholder { color: rgba(255,255,255,0.7); }
+input::placeholder { color: rgba(255,255,255,0.5); }
 
 button {
     background: #4facfe;
     border: none;
-    padding: 10px 20px;
-    border-radius: 12px;
+    padding: 12px 25px;
+    border-radius: 14px;
     color: white;
     font-weight: 600;
     cursor: pointer;
-    transition: 0.3s;
+    transition: 0.4s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-button:hover { background: #00f2fe; transform: scale(1.05); }
+button:hover { background: #00f2fe; transform: scale(1.02); box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4); }
+button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-/* ওয়েদার ডিসপ্লে */
+/* মেইন ওয়েদার ডিসপ্লে */
 .main-weather {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 20px 0;
+    margin: 25px 0;
+    gap: 10px;
 }
-.temp { font-size: 70px; line-height: 1; }
-.desc { font-size: 20px; opacity: 0.9; margin-top: 5px; }
+.main-weather img { width: 120px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3)); }
+.temp { font-size: 80px; font-weight: 600; line-height: 1; }
+.desc { font-size: 22px; opacity: 0.9; margin-top: 5px; font-weight: 300; }
 
-/* গ্রিড লেআউট (৪টি বক্স) */
+/* ডিটেইলস গ্রিড (৬টি আইটেম) */
 .details-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(3, 1fr);
     gap: 15px;
-    margin-top: 30px;
+    margin-top: 35px;
 }
 .detail-item {
-    background: rgba(255, 255, 255, 0.1);
-    padding: 15px;
-    border-radius: 15px;
+    background: rgba(255, 255, 255, 0.08);
+    padding: 15px 10px;
+    border-radius: 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
     transition: 0.3s;
 }
-.detail-item:hover { background: rgba(255, 255, 255, 0.2); }
-.detail-item i { font-size: 20px; margin-bottom: 8px; color: #4facfe; }
-.detail-item span { font-size: 12px; opacity: 0.7; }
-.detail-item strong { font-size: 16px; margin-top: 5px; }
+.detail-item:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-5px); }
+.detail-item i { font-size: 18px; margin-bottom: 8px; color: #4facfe; }
+.detail-item span { font-size: 11px; opacity: 0.6; text-transform: uppercase; }
+.detail-item strong { font-size: 14px; margin-top: 4px; }
 
-/* এনিমেশন */
-.animate-fade {
-    animation: fadeIn 1s ease-in;
+/* ৫ দিনের পূর্বাভাস (Forecast Section) */
+.forecast-section {
+    margin-top: 40px;
+    padding-top: 25px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
+.forecast-title { font-size: 16px; margin-bottom: 20px; opacity: 0.8; font-weight: 400; }
+.forecast-container {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+.forecast-item {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 12px 5px;
+    border-radius: 15px;
+    text-align: center;
+}
+.f-day { font-size: 12px; opacity: 0.7; margin-bottom: 5px; }
+.forecast-item img { width: 40px; }
+.f-temp { font-size: 14px; font-weight: 600; }
+
+/* এনিমেশন এবং এরর */
+.animate-fade { animation: fadeIn 0.8s ease-out; }
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
 .error-box {
-    background: rgba(255, 71, 87, 0.3);
-    padding: 10px;
-    border-radius: 10px;
-    margin-bottom: 15px;
+    background: rgba(255, 71, 87, 0.2);
+    border: 1px solid rgba(255, 71, 87, 0.3);
+    padding: 12px;
+    border-radius: 12px;
+    margin-bottom: 20px;
     font-size: 14px;
+    color: #ffcccc;
+}
+
+.welcome-msg { padding: 40px 20px; opacity: 0.8; }
+.welcome-msg i { margin-bottom: 20px; color: #4facfe; }
+
+/* রেসপনসিভ ডিজাইন */
+@media (max-width: 480px) {
+    .details-grid { grid-template-columns: 1fr 1fr; }
+    .temp { font-size: 60px; }
+    .forecast-container { overflow-x: auto; padding-bottom: 10px; }
+    .forecast-item { min-width: 70px; }
 }
