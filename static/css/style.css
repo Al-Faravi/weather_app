@@ -1,0 +1,121 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #1e3c72, #2a5298); /* ডিপ ব্লু লাক্সারি গ্রেডিয়েন্ট */
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    color: white;
+}
+
+.weather-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(15px);
+    padding: 40px 30px;
+    border-radius: 30px;
+    width: 100%;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ঘড়ি ও তারিখ */
+.date-time {
+    margin-bottom: 20px;
+}
+.date-time p { font-size: 14px; opacity: 0.8; }
+.date-time h3 { font-size: 22px; font-weight: 400; }
+
+.title { margin-bottom: 25px; letter-spacing: 1px; font-weight: 600; }
+
+/* সার্চ বার */
+.search-form {
+    display: flex;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 15px;
+    padding: 5px;
+    margin-bottom: 30px;
+}
+.input-group {
+    display: flex;
+    align-items: center;
+    padding-left: 15px;
+    flex: 1;
+}
+input {
+    background: transparent;
+    border: none;
+    outline: none;
+    color: white;
+    padding: 10px;
+    width: 100%;
+}
+input::placeholder { color: rgba(255,255,255,0.7); }
+
+button {
+    background: #4facfe;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 12px;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+}
+button:hover { background: #00f2fe; transform: scale(1.05); }
+
+/* ওয়েদার ডিসপ্লে */
+.main-weather {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+}
+.temp { font-size: 70px; line-height: 1; }
+.desc { font-size: 20px; opacity: 0.9; margin-top: 5px; }
+
+/* গ্রিড লেআউট (৪টি বক্স) */
+.details-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-top: 30px;
+}
+.detail-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: 0.3s;
+}
+.detail-item:hover { background: rgba(255, 255, 255, 0.2); }
+.detail-item i { font-size: 20px; margin-bottom: 8px; color: #4facfe; }
+.detail-item span { font-size: 12px; opacity: 0.7; }
+.detail-item strong { font-size: 16px; margin-top: 5px; }
+
+/* এনিমেশন */
+.animate-fade {
+    animation: fadeIn 1s ease-in;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.error-box {
+    background: rgba(255, 71, 87, 0.3);
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    font-size: 14px;
+}

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Advanced Weather Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <div class="weather-card">
+        <div class="date-time">
+            <p id="current-date"></p>
+            <h3 id="current-time"></h3>
+        </div>
+
+        <h2 class="title">Weather Insight</h2>
+        
+        <form method="POST" class="search-form" id="search-form">
+            <div class="input-group">
+                <i class="fas fa-search-location"></i>
+                <input type="text" name="city" id="city-input" placeholder="Enter city name..." required>
+            </div>
+            <button type="submit" id="search-btn">Search</button>
+        </form>
+
+        {% if error %}
+            <div class="error-box">
+                <i class="fas fa-exclamation-circle"></i> {{ error }}
+            </div>
+        {% endif %}
+
+        {% if weather %}
+            <div class="weather-info animate-fade">
+                <h1 class="city-name"><i class="fas fa-map-marker-alt"></i> {{ weather.city }}</h1>
+                
+                <div class="main-weather">
+                    <img src="http://openweathermap.org/img/wn/{{ weather.icon }}@4x.png" alt="icon">
+                    <div class="temp-box">
+                        <h2 class="temp">{{ weather.temp }}°C</h2>
+                        <p class="desc">{{ weather.desc | capitalize }}</p>
+                    </div>
+                </div>
+                
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <i class="fas fa-tint"></i>
+                        <span>Humidity</span>
+                        <strong>{{ weather.humidity }}%</strong>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-wind"></i>
+                        <span>Wind</span>
+                        <strong>{{ weather.wind }} km/h</strong>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-compress-arrows-alt"></i>
+                        <span>Pressure</span>
+                        <strong>{{ weather.pressure if weather.pressure else '1012' }} hPa</strong>
+                    </div>
+                    <div class="detail-item">
+                        <i class="fas fa-eye"></i>
+                        <span>Visibility</span>
+                        <strong>10 km</strong>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="welcome-msg">
+                <i class="fas fa-cloud-sun-rain fa-3x"></i>
+                <p>Search for a city to get instant weather updates.</p>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function updateTime() {
+            const now = new Date();
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString(undefined, options);
+            document.getElementById('current-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+        }
+        setInterval(updateTime, 1000);
+        updateTime();
+
+        // বাটন লোডিং ইফেক্ট
+        document.getElementById('search-form').onsubmit = function() {
+            document.getElementById('search-btn').innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        };
+    </script>
+
+</body>
+</html>
