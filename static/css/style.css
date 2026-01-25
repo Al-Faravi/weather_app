@@ -14,8 +14,9 @@ body {
     align-items: center;
     padding: 20px;
     color: white;
-    transition: background 0.8s ease; /* স্মুথ থিম ট্রানজিশন */
-    background: #1e3c72; /* ডিফল্ট ব্যাকগ্রাউন্ড */
+    transition: background 0.8s ease; 
+    background: #1e3c72; 
+    overflow-x: hidden;
 }
 
 /* ডাইনামিক থিম ক্লাসসমূহ */
@@ -26,16 +27,20 @@ body.thunderstorm { background: linear-gradient(135deg, #141e30, #243b55); }
 body.snow { background: linear-gradient(135deg, #83a4d4, #b6fbff); }
 body.mist, body.haze, body.fog { background: linear-gradient(135deg, #606c88, #3f4c6b); }
 
+/* ৩ডি কার্ড ইফেক্ট সেটআপ */
 .weather-card {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(20px);
     padding: 40px 30px;
     border-radius: 35px;
     width: 100%;
-    max-width: 500px; /* ৫ দিনের পূর্বাভাসের জন্য একটু বড় করা হয়েছে */
+    max-width: 500px;
     text-align: center;
     box-shadow: 0 25px 50px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.2);
+    transform-style: preserve-3d; /* JS Tilt এর জন্য */
+    will-change: transform;
+    transition: box-shadow 0.3s ease;
 }
 
 /* তারিখ ও ঘড়ি */
@@ -86,7 +91,20 @@ button {
     gap: 8px;
 }
 button:hover { background: #00f2fe; transform: scale(1.02); box-shadow: 0 5px 15px rgba(79, 172, 254, 0.4); }
-button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* ইউনিট কনভার্টার সুইচ (New) */
+.unit-toggle {
+    margin-top: 15px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    display: inline-block;
+    background: rgba(0,0,0,0.2);
+    padding: 5px 15px;
+    border-radius: 20px;
+    transition: 0.3s;
+}
+.unit-toggle span { padding: 0 5px; opacity: 0.5; transition: 0.3s; }
+.unit-toggle span.active { opacity: 1; color: #00f2fe; font-weight: bold; }
 
 /* মেইন ওয়েদার ডিসপ্লে */
 .main-weather {
@@ -96,11 +114,15 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
     margin: 25px 0;
     gap: 10px;
 }
-.main-weather img { width: 120px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.3)); }
-.temp { font-size: 80px; font-weight: 600; line-height: 1; }
+.main-weather img { 
+    width: 120px; 
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
+    transform: translateZ(50px); /* JS Tilt এর সময় গভীরতা দেখাবে */
+}
+.temp { font-size: 80px; font-weight: 600; line-height: 1; transform: translateZ(60px); }
 .desc { font-size: 22px; opacity: 0.9; margin-top: 5px; font-weight: 300; }
 
-/* ডিটেইলস গ্রিড (৬টি আইটেম) */
+/* ডিটেইলস গ্রিড */
 .details-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -117,12 +139,12 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
     border: 1px solid rgba(255, 255, 255, 0.05);
     transition: 0.3s;
 }
-.detail-item:hover { background: rgba(255, 255, 255, 0.15); transform: translateY(-5px); }
+.detail-item:hover { background: rgba(255, 255, 255, 0.15); transform: translateZ(30px); }
 .detail-item i { font-size: 18px; margin-bottom: 8px; color: #4facfe; }
 .detail-item span { font-size: 11px; opacity: 0.6; text-transform: uppercase; }
 .detail-item strong { font-size: 14px; margin-top: 4px; }
 
-/* ৫ দিনের পূর্বাভাস (Forecast Section) */
+/* ৫ দিনের পূর্বাভাস */
 .forecast-section {
     margin-top: 40px;
     padding-top: 25px;
@@ -140,16 +162,18 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
     padding: 12px 5px;
     border-radius: 15px;
     text-align: center;
+    transition: 0.3s;
 }
+.forecast-item:hover { background: rgba(255, 255, 255, 0.12); transform: scale(1.05); }
 .f-day { font-size: 12px; opacity: 0.7; margin-bottom: 5px; }
 .forecast-item img { width: 40px; }
 .f-temp { font-size: 14px; font-weight: 600; }
 
 /* এনিমেশন এবং এরর */
-.animate-fade { animation: fadeIn 0.8s ease-out; }
+.animate-fade { animation: fadeIn 0.8s ease-out forwards; }
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; transform: translateY(30px) perspective(1000px); }
+    to { opacity: 1; transform: translateY(0) perspective(1000px); }
 }
 
 .error-box {
@@ -169,6 +193,6 @@ button:disabled { opacity: 0.6; cursor: not-allowed; }
 @media (max-width: 480px) {
     .details-grid { grid-template-columns: 1fr 1fr; }
     .temp { font-size: 60px; }
-    .forecast-container { overflow-x: auto; padding-bottom: 10px; }
-    .forecast-item { min-width: 70px; }
+    .forecast-container { overflow-x: auto; padding-bottom: 10px; gap: 15px; }
+    .forecast-item { min-width: 80px; }
 }

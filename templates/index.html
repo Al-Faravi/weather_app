@@ -23,7 +23,7 @@
         <form method="POST" class="search-form" id="search-form">
             <div class="input-group">
                 <i class="fas fa-search-location"></i>
-                <input type="text" name="city" id="city-input" placeholder="Enter city name..." required>
+                <input type="text" name="city" id="city-input" placeholder="Enter city name..." autocomplete="off" required>
             </div>
             <button type="submit" id="search-btn">Search</button>
         </form>
@@ -41,8 +41,12 @@
                 <div class="main-weather">
                     <img src="http://openweathermap.org/img/wn/{{ weather.icon }}@4x.png" alt="icon">
                     <div class="temp-box">
-                        <h2 class="temp">{{ weather.temp }}°C</h2>
+                        <h2 class="temp" id="main-temp" data-temp="{{ weather.temp }}">{{ weather.temp }}°C</h2>
                         <p class="desc">{{ weather.desc | capitalize }}</p>
+                        
+                        <div class="unit-toggle">
+                            <span id="unit-c" class="active">°C</span> | <span id="unit-f">°F</span>
+                        </div>
                     </div>
                 </div>
                 
@@ -96,26 +100,24 @@
             <div class="welcome-msg">
                 <i class="fas fa-cloud-sun-rain fa-3x"></i>
                 <p>Welcome! Please enter a city name to get a detailed weather report and 5-day forecast.</p>
+                <p><small>Tip: Press <strong>'/'</strong> to focus the search bar.</small></p>
             </div>
         {% endif %}
     </div>
 
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    
     <script>
-        // লাইভ ঘড়ি আপডেট করার ফাংশন
         function updateTime() {
             const now = new Date();
             const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            document.getElementById('current-date').innerText = now.toLocaleDateString(undefined, options);
-            document.getElementById('current-time').innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            const dateEl = document.getElementById('current-date');
+            const timeEl = document.getElementById('current-time');
+            if(dateEl) dateEl.innerText = now.toLocaleDateString(undefined, options);
+            if(timeEl) timeEl.innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
         }
         setInterval(updateTime, 1000);
         updateTime();
-
-        // ফর্ম সাবমিট করার সময় লোডিং এনিমেশন
-        document.getElementById('search-form').onsubmit = function() {
-            document.getElementById('search-btn').innerHTML = '<i class="fas fa-circle-notch fa-spin"></i>';
-            document.getElementById('search-btn').disabled = true;
-        };
     </script>
 
 </body>
