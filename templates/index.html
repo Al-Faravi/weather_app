@@ -3,122 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ultimate Weather Dashboard Pro</title>
+    <title>Weather Dashboard Pro</title>
     
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="{{ weather.main_condition if weather else 'default' }}">
 
-    <div class="weather-card">
-        <div class="date-time">
-            <p id="current-date"></p>
-            <h3 id="current-time"></h3>
+    <main class="app-container">
+        <div class="weather-card">
+            
+            <header class="card-header">
+                <div class="date-time">
+                    <p id="current-date"></p>
+                    <h3 id="current-time"></h3>
+                </div>
+                <h2 class="title">Weather Insight</h2>
+            </header>
+
+            <section class="search-section">
+                <form method="POST" class="search-form" id="search-form">
+                    <div class="input-group">
+                        <i class="fas fa-search-location"></i>
+                        <input type="text" name="city" id="city-input" placeholder="Search City..." autocomplete="off" required>
+                        <button type="button" id="geo-btn" title="Use Current Location">
+                            <i class="fas fa-crosshairs"></i>
+                        </button>
+                    </div>
+                    <button type="submit" id="search-btn">Search</button>
+                </form>
+
+                <div id="history-container" class="history-container"></div>
+            </section>
+
+            {% if error %}
+                <div class="error-box animate-fade">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                </div>
+            {% endif %}
+
+            {% if weather %}
+                <div class="weather-info animate-fade">
+                    <div class="hero-weather">
+                        <h1 class="city-name"><i class="fas fa-map-marker-alt"></i> {{ weather.city }}</h1>
+                        <div class="main-display">
+                            <div class="weather-icon-box">
+                                <img src="http://openweathermap.org/img/wn/{{ weather.icon }}@4x.png" alt="weather icon">
+                            </div>
+                            <div class="temp-display">
+                                <h2 class="temp" id="main-temp" data-temp="{{ weather.temp }}">{{ weather.temp }}°C</h2>
+                                <p class="desc">{{ weather.desc | capitalize }}</p>
+                                <div class="unit-toggle">
+                                    <span id="unit-c" class="active">°C</span> | <span id="unit-f">°F</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="details-grid">
+                        <div class="detail-item"><i class="fas fa-temperature-low"></i><span>Feels Like</span><strong>{{ weather.feels_like }}°C</strong></div>
+                        <div class="detail-item"><i class="fas fa-tint"></i><span>Humidity</span><strong>{{ weather.humidity }}%</strong></div>
+                        <div class="detail-item"><i class="fas fa-wind"></i><span>Wind</span><strong>{{ weather.wind }} km/h</strong></div>
+                        <div class="detail-item"><i class="fas fa-eye"></i><span>Visibility</span><strong>{{ weather.visibility }} km</strong></div>
+                        <div class="detail-item"><i class="fas fa-sun"></i><span>Sunrise</span><strong>{{ weather.sunrise }}</strong></div>
+                        <div class="detail-item"><i class="fas fa-moon"></i><span>Sunset</span><strong>{{ weather.sunset }}</strong></div>
+                    </div>
+
+                    <footer class="forecast-section">
+                        <h4 class="forecast-title">5-Day Forecast</h4>
+                        <div class="forecast-container">
+                            {% for day in forecast %}
+                            <div class="forecast-item">
+                                <p class="f-day">{{ day.day }}</p>
+                                <img src="http://openweathermap.org/img/wn/{{ day.icon }}.png" alt="icon">
+                                <p class="f-temp">{{ day.temp }}°C</p>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </footer>
+                </div>
+            {% else %}
+                <div class="welcome-msg animate-fade">
+                    <i class="fas fa-cloud-sun-rain fa-3x"></i>
+                    <p>Enter a city or use auto-location to get started.</p>
+                    <span class="tip">Tip: Press <strong>'/'</strong> to focus search</span>
+                </div>
+            {% endif %}
         </div>
-
-        <h2 class="title">Weather Insight</h2>
-        
-        <form method="POST" class="search-form" id="search-form">
-            <div class="input-group">
-                <i class="fas fa-search-location"></i>
-                <input type="text" name="city" id="city-input" placeholder="Enter city name..." autocomplete="off" required>
-            </div>
-            <button type="submit" id="search-btn">Search</button>
-        </form>
-
-        {% if error %}
-            <div class="error-box">
-                <i class="fas fa-exclamation-circle"></i> {{ error }}
-            </div>
-        {% endif %}
-
-        {% if weather %}
-            <div class="weather-info animate-fade">
-                <h1 class="city-name"><i class="fas fa-map-marker-alt"></i> {{ weather.city }}, {{ weather.country }}</h1>
-                
-                <div class="main-weather">
-                    <img src="http://openweathermap.org/img/wn/{{ weather.icon }}@4x.png" alt="icon">
-                    <div class="temp-box">
-                        <h2 class="temp" id="main-temp" data-temp="{{ weather.temp }}">{{ weather.temp }}°C</h2>
-                        <p class="desc">{{ weather.desc | capitalize }}</p>
-                        
-                        <div class="unit-toggle">
-                            <span id="unit-c" class="active">°C</span> | <span id="unit-f">°F</span>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="details-grid">
-                    <div class="detail-item">
-                        <i class="fas fa-temperature-high"></i>
-                        <span>Feels Like</span>
-                        <strong>{{ weather.feels_like }}°C</strong>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-tint"></i>
-                        <span>Humidity</span>
-                        <strong>{{ weather.humidity }}%</strong>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-wind"></i>
-                        <span>Wind Speed</span>
-                        <strong>{{ weather.wind }} km/h</strong>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-eye"></i>
-                        <span>Visibility</span>
-                        <strong>{{ weather.visibility }} km</strong>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-sun"></i>
-                        <span>Sunrise</span>
-                        <strong>{{ weather.sunrise }}</strong>
-                    </div>
-                    <div class="detail-item">
-                        <i class="fas fa-moon"></i>
-                        <span>Sunset</span>
-                        <strong>{{ weather.sunset }}</strong>
-                    </div>
-                </div>
-
-                <div class="forecast-section">
-                    <h4 class="forecast-title">5-Day Forecast</h4>
-                    <div class="forecast-container">
-                        {% for day in forecast %}
-                        <div class="forecast-item">
-                            <p class="f-day">{{ day.day }}</p>
-                            <img src="http://openweathermap.org/img/wn/{{ day.icon }}.png" alt="icon">
-                            <p class="f-temp">{{ day.temp }}°C</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        {% else %}
-            <div class="welcome-msg">
-                <i class="fas fa-cloud-sun-rain fa-3x"></i>
-                <p>Welcome! Please enter a city name to get a detailed weather report and 5-day forecast.</p>
-                <p><small>Tip: Press <strong>'/'</strong> to focus the search bar.</small></p>
-            </div>
-        {% endif %}
-    </div>
+    </main>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    
     <script>
         function updateTime() {
             const now = new Date();
-            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
-            const dateEl = document.getElementById('current-date');
-            const timeEl = document.getElementById('current-time');
-            if(dateEl) dateEl.innerText = now.toLocaleDateString(undefined, options);
-            if(timeEl) timeEl.innerText = now.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            const dateOptions = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+            const timeOptions = { hour: '2-digit', minute: '2-digit', second: '2-digit' };
+            document.getElementById('current-date').innerText = now.toLocaleDateString('en-US', dateOptions);
+            document.getElementById('current-time').innerText = now.toLocaleTimeString('en-US', timeOptions);
         }
         setInterval(updateTime, 1000);
         updateTime();
     </script>
-
 </body>
 </html>

@@ -13,40 +13,58 @@ body {
     align-items: center;
     padding: 20px;
     color: white;
-    background: #1e3c72; /* ডিফল্ট */
-    transition: background 0.5s ease;
+    background: #1e3c72; /* ডিফল্ট ব্যাকগ্রাউন্ড */
+    transition: background 0.6s ease;
+    overflow-x: hidden;
 }
 
-/* ডাইনামিক থিম */
-body.clear { background: #f39c12; }
-body.clouds { background: #34495e; }
-body.rain { background: #2980b9; }
-body.snow { background: #95a5a6; }
+/* ডাইনামিক থিম (আবহাওয়া অনুযায়ী পরিবর্তন হবে) */
+body.clear { background: linear-gradient(135deg, #f39c12, #d35400); }
+body.clouds { background: linear-gradient(135deg, #5d6d7e, #2c3e50); }
+body.rain { background: linear-gradient(135deg, #2193b0, #6dd5ed); }
+body.snow { background: linear-gradient(135deg, #bdc3c7, #2c3e50); }
+
+/* মেইন কন্টেইনার */
+.app-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
 
 .weather-card {
-    background: rgba(255, 255, 255, 0.15);
-    backdrop-filter: blur(10px);
-    padding: 30px;
-    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    padding: 40px;
+    border-radius: 24px;
     width: 100%;
-    max-width: 450px;
-    text-align: center;
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
-    border: 1px solid rgba(255,255,255,0.1);
+    max-width: 550px; /* প্রফেশনাল কার্ড সাইজ */
+    box-shadow: 0 20px 45px rgba(0,0,0,0.25);
+    border: 1px solid rgba(255,255,255,0.15);
+}
+
+/* ডেস্কটপ ভিউ ইমপ্রুভমেন্ট */
+@media (min-width: 1024px) {
+    .weather-card {
+        padding: 50px;
+        max-width: 650px;
+    }
 }
 
 /* তারিখ ও ঘড়ি */
-.date-time { margin-bottom: 20px; }
-.date-time p { font-size: 14px; opacity: 0.8; }
-.date-time h3 { font-size: 20px; font-weight: 400; }
+.card-header { text-align: center; margin-bottom: 25px; }
+.date-time p { font-size: 14px; opacity: 0.8; text-transform: uppercase; letter-spacing: 1px; }
+.date-time h3 { font-size: 24px; font-weight: 300; margin-bottom: 5px; }
+.title { font-size: 16px; letter-spacing: 3px; opacity: 0.6; text-transform: uppercase; }
 
-/* সার্চ বার */
+/* স্মার্ট সার্চ বার ও অটো-লোকেশন */
+.search-section { margin-bottom: 30px; }
 .search-form {
     display: flex;
     background: white;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 25px;
+    border-radius: 14px;
+    padding: 5px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
 .input-group {
     display: flex;
@@ -54,81 +72,166 @@ body.snow { background: #95a5a6; }
     padding-left: 15px;
     flex: 1;
 }
-.input-group i { color: #888; }
+.input-group i { color: #aaa; }
 input {
     border: none;
     outline: none;
     padding: 12px;
     width: 100%;
-    font-size: 14px;
+    font-size: 16px;
+    color: #333;
 }
-button {
+
+/* লোকেশন বাটন */
+#geo-btn {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    padding: 0 10px;
+    font-size: 18px;
+    transition: 0.3s;
+}
+#geo-btn:hover { color: #222; transform: scale(1.1); }
+
+#search-btn {
     background: #222;
     color: white;
     border: none;
-    padding: 0 20px;
+    padding: 0 25px;
+    border-radius: 10px;
     cursor: pointer;
     font-weight: 600;
+    transition: 0.3s;
+}
+#search-btn:hover { background: #444; }
+
+/* সার্চ হিস্ট্রি ট্যাগ */
+.history-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 15px;
+    justify-content: center;
+}
+.history-tag {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.history-tag:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
 }
 
-/* ওয়েদার ডিসপ্লে */
-.main-weather img { width: 100px; }
-.temp { font-size: 60px; font-weight: 600; margin: 5px 0; }
-.desc { font-size: 18px; opacity: 0.9; text-transform: capitalize; }
+/* হিরো ওয়েদার ডিসপ্লে */
+.hero-weather { margin-bottom: 35px; text-align: center; }
+.city-name { font-size: 28px; margin-bottom: 15px; font-weight: 600; }
+.main-display {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+}
+.weather-icon-box img { width: 110px; filter: drop-shadow(0 0 10px rgba(255,255,255,0.2)); }
+.temp { font-size: 68px; font-weight: 600; line-height: 1; }
+.desc { font-size: 18px; opacity: 0.9; margin-bottom: 10px; }
 
 /* ইউনিট সুইচ */
 .unit-toggle {
-    margin-top: 10px;
-    font-size: 13px;
+    font-size: 14px;
     cursor: pointer;
-    background: rgba(0,0,0,0.1);
+    background: rgba(0,0,0,0.2);
     display: inline-block;
-    padding: 4px 12px;
-    border-radius: 15px;
+    padding: 5px 15px;
+    border-radius: 20px;
+    margin-top: 5px;
 }
-.unit-toggle .active { color: #fff; font-weight: bold; }
-.unit-toggle span { opacity: 0.6; }
+.unit-toggle .active { color: #00d2ff; font-weight: bold; }
 
 /* বিস্তারিত গ্রিড */
 .details-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-top: 25px;
+    gap: 15px;
+    margin-top: 30px;
 }
 .detail-item {
-    background: rgba(255,255,255,0.1);
-    padding: 12px 5px;
-    border-radius: 12px;
+    background: rgba(255,255,255,0.08);
+    padding: 15px 10px;
+    border-radius: 16px;
+    text-align: center;
+    border: 1px solid rgba(255,255,255,0.05);
+    transition: 0.3s;
 }
-.detail-item i { font-size: 16px; color: #fff; margin-bottom: 5px; }
-.detail-item span { font-size: 10px; display: block; opacity: 0.7; }
-.detail-item strong { font-size: 13px; }
+.detail-item:hover { background: rgba(255,255,255,0.15); }
+.detail-item i { font-size: 20px; margin-bottom: 8px; display: block; color: #00d2ff; }
+.detail-item span { font-size: 11px; opacity: 0.6; text-transform: uppercase; }
+.detail-item strong { font-size: 15px; display: block; margin-top: 4px; }
 
 /* ৫ দিনের পূর্বাভাস */
 .forecast-section {
-    margin-top: 25px;
+    margin-top: 35px;
     border-top: 1px solid rgba(255,255,255,0.1);
-    padding-top: 20px;
+    padding-top: 25px;
 }
+.forecast-title { text-align: center; margin-bottom: 20px; font-weight: 400; opacity: 0.8; }
 .forecast-container {
     display: flex;
     justify-content: space-between;
+    gap: 10px;
 }
-.forecast-item { text-align: center; }
-.f-day { font-size: 11px; opacity: 0.7; }
-.forecast-item img { width: 35px; }
-.f-temp { font-size: 13px; font-weight: 600; }
+.forecast-item {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    padding: 15px 10px;
+    border-radius: 12px;
+    text-align: center;
+}
+.f-day { font-size: 12px; opacity: 0.7; margin-bottom: 5px; }
+.forecast-item img { width: 40px; }
+.f-temp { font-size: 14px; font-weight: 600; }
 
 /* এনিমেশন */
-.animate-fade { animation: fadeIn 0.5s ease-in; }
+.animate-fade { animation: fadeIn 0.6s ease-out; }
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+    from { opacity: 0; transform: translateY(15px); }
     to { opacity: 1; transform: translateY(0); }
 }
 
-.error-box { background: #e74c3c; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 15px; }
-
-@media (max-width: 400px) {
-    .details-grid { grid-template-columns: 1fr 1fr; }
+/* রেসপনসিভ ডিজাইন (Mobile & Tablet) */
+@media (max-width: 768px) {
+    .weather-card { padding: 30px 20px; }
+    .temp { font-size: 58px; }
+    .details-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+@media (max-width: 480px) {
+    .main-display { flex-direction: column; gap: 5px; }
+    .temp { font-size: 52px; }
+    .forecast-container { 
+        overflow-x: auto; 
+        padding-bottom: 10px;
+        justify-content: flex-start;
+        -webkit-overflow-scrolling: touch;
+    }
+    .forecast-item { min-width: 85px; }
+    .history-tag { font-size: 11px; padding: 4px 10px; }
+}
+
+/* এরর এবং ওয়েলকাম মেসেজ */
+.error-box { 
+    background: rgba(231, 76, 60, 0.2); 
+    padding: 12px; 
+    border-radius: 10px; 
+    text-align: center; 
+    margin-bottom: 20px; 
+    border: 1px solid #e74c3c; 
+    font-size: 14px;
+}
+.welcome-msg { padding: 40px 20px; text-align: center; opacity: 0.8; }
+.welcome-msg .tip { display: block; margin-top: 15px; font-size: 12px; opacity: 0.5; }

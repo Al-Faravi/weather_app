@@ -4,28 +4,40 @@ from datetime import datetime
 
 app = Flask(__name__)
 
+# আপনার API Key
+API_KEY = "b140d4764e7e30ec785c37515da8ea5d"
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
     weather_data = None
     forecast_list = []
     error_msg = None
-    api_key = "b140d4764e7e30ec785c37515da8ea5d" 
     
-    if request.method == 'POST':
-        city = request.form.get('city')
-        
-        # ১. বর্তমান আবহাওয়ার জন্য API কল
-        current_url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
-        
-        # ২. ৫ দিনের পূর্বাভাসের জন্য API কল
-        forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid={api_key}&units=metric"
-        
+    # ইনপুট ডাটা গ্রহণ (POST থেকে শহর অথবা GET থেকে ল্যাট/লন)
+    city = request.form.get('city')
+    lat = request.args.get('lat')
+    lon = request.args.get('lon')
+
+    current_url = None
+    forecast_url = None
+
+    # ১. ইউআরএল কনস্ট্রাকশন (শহর বনাম কোঅর্ডিনেট)
+    if city:
+        current_url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={API_KEY}&units=metric"
+        forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?q={city}&appid={API_KEY}&units=metric"
+    elif lat and lon:
+        current_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
+        forecast_url = f"http://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
+
+    # ২. যদি কোনো রিকোয়েস্ট থাকে তবে ডাটা ফেচ করা
+    if current_url and forecast_url:
         try:
             curr_res = requests.get(current_url).json()
             fore_res = requests.get(forecast_url).json()
-            
+
             if curr_res.get('cod') == 200:
-                # সময় রূপান্তর (Timezone অনুযায়ী)
+                # স্থানীয় সময় অনুযায়ী সূর্যোদয় ও সূর্যাস্ত গণনা
+                # OpenWeatherMap-এর 'timezone' সেকেন্ডে থাকে
                 sunrise = datetime.utcfromtimestamp(curr_res['sys']['sunrise'] + curr_res['timezone']).strftime('%I:%M %p')
                 sunset = datetime.utcfromtimestamp(curr_res['sys']['sunset'] + curr_res['timezone']).strftime('%I:%M %p')
 
@@ -34,7 +46,7 @@ def home():
                     'country': curr_res['sys']['country'],
                     'temp': round(curr_res['main']['temp']),
                     'desc': curr_res['weather'][0]['description'],
-                    'main_condition': curr_res['weather'][0]['main'].lower(), # সিএসএস থিমের জন্য
+                    'main_condition': curr_res['weather'][0]['main'].lower(),
                     'icon': curr_res['weather'][0]['icon'],
                     'humidity': curr_res['main']['humidity'],
                     'wind': curr_res['wind']['speed'],
@@ -45,9 +57,8 @@ def home():
                     'feels_like': round(curr_res['main']['feels_like'])
                 }
 
-                # ৫ দিনের পূর্বাভাসের ডাটা প্রসেসিং (প্রতিদিনের নির্দিষ্ট সময়ের ডাটা ফিল্টার)
-                # এই API প্রতি ৩ ঘণ্টা পরপর ডাটা দেয়, আমরা প্রতিদিনের একটি করে ডাটা নেব
-                for item in fore_res['list'][::8]: 
+                # ৫ দিনের পূর্বাভাসের ডাটা প্রসেসিং (প্রতিদিনের জন্য একটি করে স্লট)
+                for item in fore_res['list'][::8]:
                     forecast_list.append({
                         'day': datetime.fromtimestamp(item['dt']).strftime('%a'),
                         'temp': round(item['main']['temp']),
@@ -55,10 +66,10 @@ def home():
                         'condition': item['weather'][0]['main']
                     })
             else:
-                error_msg = "দুঃখিত, এই শহরটি খুঁজে পাওয়া যায়নি!"
+                error_msg = "দুঃখিত, এই স্থানটি খুঁজে পাওয়া যায়নি!"
                 
         except Exception as e:
-            error_msg = "ডেটা লোড করতে সমস্যা হচ্ছে। আপনার ইন্টারনেট কানেকশন চেক করুন।"
+            error_msg = "সার্ভার থেকে ডেটা আনতে সমস্যা হচ্ছে। অনুগ্রহ করে পরে চেষ্টা করুন।"
 
     return render_template('index.html', weather=weather_data, forecast=forecast_list, error=error_msg)
 

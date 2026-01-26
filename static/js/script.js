@@ -1,89 +1,168 @@
 /**
- * Ultimate Weather Dashboard Logic
- * Features: Unit Conversion, Count-up Animation, Parallax Effect, Theme Switcher
+ * Weather Dashboard Pro - Logic
+ * Features: 
+ * - Geolocation (Auto-location)
+ * - Persistent Search History (LocalStorage)
+ * - Accurate Unit Conversion (C/F)
+ * - Smooth Count-up Animation
+ * - Keyboard Shortcuts ('/')
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-    // এলিমেন্টগুলো সিলেক্ট করা
+    // --- ১. এলিমেন্ট সিলেকশন ---
     const tempElement = document.getElementById('main-temp');
     const unitC = document.getElementById('unit-c');
     const unitF = document.getElementById('unit-f');
     const searchInput = document.getElementById('city-input');
-    const card = document.querySelector('.weather-card');
     const searchForm = document.getElementById('search-form');
     const searchBtn = document.getElementById('search-btn');
+    const geoBtn = document.getElementById('geo-btn');
+    const historyContainer = document.getElementById('history-container');
+    const forecastTemps = document.querySelectorAll('.f-temp');
 
-    // --- ১. তাপমাত্রা এনিমেশন (Count-up Animation) ---
-    if (tempElement) {
-        const targetTemp = parseInt(tempElement.getAttribute('data-temp'));
-        let startTemp = 0;
-        const duration = 1000; // ১ সেকেন্ডের মধ্যে এনিমেশন শেষ হবে
-        const increment = targetTemp / (duration / 20);
+    // --- ২. সার্চ হিস্ট্রি ম্যানেজমেন্ট ---
+    
+    // হিস্ট্রি রেন্ডার করা (UI তে দেখানো)
+    const renderHistory = () => {
+        const history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
+        if (!historyContainer) return;
+        
+        historyContainer.innerHTML = '';
+        history.forEach(city => {
+            const tag = document.createElement('span');
+            tag.className = 'history-tag';
+            tag.innerText = city;
+            tag.title = `Search ${city}`;
+            
+            // ট্যাগ ক্লিক করলে সরাসরি সার্চ হবে
+            tag.onclick = () => {
+                searchInput.value = city;
+                searchForm.dispatchEvent(new Event('submit')); // ফর্ম সাবমিট ট্রিগার
+                searchForm.submit();
+            };
+            historyContainer.appendChild(tag);
+        });
+    };
 
-        const counter = setInterval(() => {
-            startTemp += increment;
-            if ((increment > 0 && startTemp >= targetTemp) || (increment < 0 && startTemp <= targetTemp)) {
-                tempElement.innerText = `${targetTemp}°C`;
-                clearInterval(counter);
+    // হিস্ট্রিতে শহর সেভ করা
+    const saveToHistory = (city) => {
+        if (!city) return;
+        let history = JSON.parse(localStorage.getItem('weatherHistory') || '[]');
+        
+        // নাম ফরম্যাট করা (যেমন: dhaka -> Dhaka)
+        const formattedCity = city.charAt(0).toUpperCase() + city.slice(1).toLowerCase();
+        
+        // ডুপ্লিকেট রিমুভ করে শুরুতে নতুন শহর যোগ করা
+        history = history.filter(item => item !== formattedCity);
+        history.unshift(formattedCity);
+        
+        // সর্বোচ্চ ৫টি শহর রাখা
+        if (history.length > 5) history.pop();
+        
+        localStorage.setItem('weatherHistory', JSON.stringify(history));
+        renderHistory();
+    };
+
+    // --- ৩. অটো-লোকেশন (Geolocation API) ---
+    if (geoBtn) {
+        geoBtn.addEventListener('click', () => {
+            if (navigator.geolocation) {
+                geoBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>'; // লোডিং আইকন
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const { latitude, longitude } = position.coords;
+                        // URL প্যারামিটার দিয়ে Flask এ পাঠানো
+                        window.location.href = `/?lat=${latitude}&lon=${longitude}`;
+                    },
+                    (error) => {
+                        console.error(error);
+                        alert("লোকেশন পাওয়া যায়নি। অনুগ্রহ করে শহরের নাম টাইপ করুন।");
+                        geoBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                    }
+                );
             } else {
-                tempElement.innerText = `${Math.round(startTemp)}°C`;
+                alert("আপনার ব্রাউজার জিও-লোকেশন সাপোর্ট করে না।");
             }
-        }, 20);
+        });
     }
 
-    // --- ২. ইউনিট কনভার্টার (C to F) পেজ রিফ্রেশ ছাড়া ---
-    if (unitF && tempElement) {
+    // --- ৪. তাপমাত্রা কাউন্ট-আপ এনিমেশন ---
+    if (tempElement) {
+        const targetTemp = parseInt(tempElement.getAttribute('data-temp'));
+        
+        const animateValue = (obj, start, end, duration) => {
+            let startTimestamp = null;
+            const step = (timestamp) => {
+                if (!startTimestamp) startTimestamp = timestamp;
+                const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+                obj.innerHTML = Math.floor(progress * (end - start) + start) + "°C";
+                if (progress < 1) {
+                    window.requestAnimationFrame(step);
+                }
+            };
+            window.requestAnimationFrame(step);
+        };
+        
+        animateValue(tempElement, 0, targetTemp, 1000);
+    }
+
+    // --- ৫. ইউনিট কনভার্টার (নির্ভুল লজিক) ---
+    if (unitF && unitC && tempElement) {
+        // ফোরকাস্টের অরিজিনাল ভ্যালু অ্যাট্রিবিউটে সেভ করা
+        forecastTemps.forEach(el => {
+            el.setAttribute('data-orig-c', el.innerText.replace('°C', ''));
+        });
+
         unitF.addEventListener('click', () => {
-            const celsius = parseInt(tempElement.getAttribute('data-temp'));
-            const fahrenheit = Math.round((celsius * 9/5) + 32);
-            tempElement.innerText = `${fahrenheit}°F`;
+            if (unitF.classList.contains('active')) return;
+
+            const c = parseInt(tempElement.getAttribute('data-temp'));
+            tempElement.innerText = `${Math.round((c * 9/5) + 32)}°F`;
+
+            forecastTemps.forEach(el => {
+                const fc = parseInt(el.getAttribute('data-orig-c'));
+                el.innerText = `${Math.round((fc * 9/5) + 32)}°F`;
+            });
+
             unitF.classList.add('active');
             unitC.classList.remove('active');
-            
-            // পূর্বাভাস বা ফোরকাস্টের তাপমাত্রাও পরিবর্তন করা
-            document.querySelectorAll('.f-temp').forEach(el => {
-                const c = parseInt(el.innerText);
-                el.innerText = `${Math.round((c * 9/5) + 32)}°F`;
-            });
         });
 
         unitC.addEventListener('click', () => {
-            const celsius = tempElement.getAttribute('data-temp');
-            tempElement.innerText = `${celsius}°C`;
+            if (unitC.classList.contains('active')) return;
+
+            tempElement.innerText = `${tempElement.getAttribute('data-temp')}°C`;
+
+            forecastTemps.forEach(el => {
+                el.innerText = `${el.getAttribute('data-orig-c')}°C`;
+            });
+
             unitC.classList.add('active');
             unitF.classList.remove('active');
-            // ফোরকাস্ট রিসেট (সহজ করার জন্য পেজ রিলোড বা অরিজিনাল ডাটা রাখা যায়)
         });
     }
 
-    // --- ৩. কার্ড প্যারাল্যাক্স ইফেক্ট (3D Tilt Effect) ---
-    card.addEventListener('mousemove', (e) => {
-        const { offsetWidth: width, offsetHeight: height } = card;
-        const { offsetX: x, offsetY: y } = e;
-        const xRotation = ((y - height / 2) / height) * 15; // ১৫ ডিগ্রি পর্যন্ত হেলবে
-        const yRotation = ((x - width / 2) / width) * -15;
-
-        card.style.transform = `perspective(1000px) rotateX(${xRotation}deg) rotateY(${yRotation}deg)`;
-    });
-
-    card.addEventListener('mouseleave', () => {
-        card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
-        card.style.transition = 'all 0.5s ease';
-    });
-
-    // --- ৪. স্মার্ট কী-বোর্ড শর্টকাট (Press '/' to focus search) ---
+    // --- ৬. কী-বোর্ড শর্টকাট ('/') ---
     document.addEventListener('keydown', (e) => {
-        if (e.key === '/') {
+        if (e.key === '/' && document.activeElement !== searchInput) {
             e.preventDefault();
             searchInput.focus();
         }
     });
 
-    // --- ৫. লোকাল স্টোরেজ (History Management) ---
-    searchForm.addEventListener('submit', () => {
-        const city = searchInput.value;
-        localStorage.setItem('lastCity', city);
-        // লোডিং স্পিনার
-        searchBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Loading...';
-    });
+    // --- ৭. ফর্ম সাবমিশন লজিক ---
+    if (searchForm) {
+        searchForm.addEventListener('submit', (e) => {
+            const cityValue = searchInput.value.trim();
+            if (cityValue) {
+                saveToHistory(cityValue);
+                searchBtn.disabled = true;
+                searchBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            }
+        });
+    }
+
+    // পেজ লোড হওয়ার সময় হিস্ট্রি দেখানো
+    renderHistory();
 });
