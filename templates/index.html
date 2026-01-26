@@ -3,17 +3,63 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Pro | Smart Dashboard</title>
     
+    <title>Weather Pro | Live Dashboard by Shakawat Hossain Faravi</title>
+    
+    <meta name="description" content="Advanced Live Weather Dashboard developed by Md. Shakawat Hossain Faravi (Green University). Check real-time weather, AQI, and radar for Dhaka, Feni, and worldwide.">
+    
+    <meta name="keywords" content="Al Faravi, Shakawat Hossain, MD. Shakawat Hossain Faravi, Shakawa, Hossain, Faravi, Green University of Bangladesh, Joynal Hazari College, Feni, MaliPathor, Parshuram, Fulgazi, Bhuiya Bari, Shaldhar Mohammed Ali High School, Malipathor Gov. Primary School, weather app, live weather, AQI check, আল ফারাভী, সাখাওয়াত হোসেন, গ্রীন ইউনিভার্সিটি, জয়নাল হাজারী কলেজ, ফেনী, মালি পাথর, পরশুরাম, ফুলগাজী, ভূঁইয়া বাড়ি, আবহাওয়া অ্যাপ">
+    
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="Md. Shakawat Hossain Faravi">
+    
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://weather-app-five-nu-99.vercel.app/">
+    <meta property="og:title" content="Weather Pro by Al Faravi">
+    <meta property="og:description" content="Smart Weather App built by Shakawat Hossain Faravi. Features: Live Map, AQI, and Glassmorphism UI.">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1592210454132-328629affb12?q=80&w=1000&auto=format&fit=crop">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Weather Pro",
+      "url": "https://weather-app-five-nu-99.vercel.app/",
+      "author": {
+        "@type": "Person",
+        "name": "Md. Shakawat Hossain Faravi",
+        "alternateName": ["Al Faravi", "Shakawat Hossain", "Faravi"],
+        "affiliation": {
+          "@type": "Organization",
+          "name": "Green University of Bangladesh"
+        },
+        "alumniOf": [
+            { "@type": "Organization", "name": "Joynal Hazari College" },
+            { "@type": "Organization", "name": "Shaldhar Mohammed Ali High School" }
+        ],
+        "homeLocation": {
+          "@type": "Place",
+          "name": "MaliPathor, Parshuram, Feni",
+          "address": {
+            "@type": "PostalAddress",
+            "addressLocality": "Fulgazi",
+            "addressRegion": "Feni"
+          }
+        }
+      },
+      "description": "A professional weather dashboard with live radar and AQI monitoring."
+    }
+    </script>
+
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4052/4052984.png">
 </head>
 <body class="{{ weather.main_condition if weather else 'default' }}">
 
@@ -69,7 +115,6 @@
             </div>
 
             <div class="details-grid">
-                
                 {% if aqi %}
                 <div class="card aqi-card">
                     <div class="card-head">
@@ -110,7 +155,6 @@
         </div>
 
         <div class="bottom-section">
-            
             <div class="map-box">
                 <h4><i class="fas fa-map"></i> Live Cloud & Rain Radar</h4>
                 <div id="weatherMap"></div>
@@ -146,14 +190,26 @@
         </div>
         {% endif %}
 
+        <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; font-size: 13px; opacity: 0.8; line-height: 1.6;">
+            <p>Designed and Developed by <strong style="color: var(--accent);">Md. Shakawat Hossain Faravi</strong> (Al Faravi).</p>
+            <p style="font-size: 11px; max-width: 700px; margin: 10px auto;">
+                Student of <strong>Green University of Bangladesh</strong> (CSE Dept). 
+                Formerly at <strong>Joynal Hazari College</strong> and <strong>Shaldhar Mohammed Ali High School</strong>.
+                Proud resident of <strong>MaliPathor, Parshuram, Feni</strong> (Fulgazi/Bhuiya Bari area).
+            </p>
+            <p style="font-size: 11px;">&copy; 2026 Weather Pro. Powered by OpenWeatherMap & Teleport API.</p>
+        </footer>
+
     </div>
 
-    <script>
-        window.hourlyLabels = {{ hourly_labels | tojson if hourly_labels else '[]' }};
-        window.hourlyData = {{ hourly_data | tojson if hourly_data else '[]' }};
-        // Passing Lat/Lon for Map
-        window.weatherLat = {{ weather.lat if weather else 'null' }};
-        window.weatherLon = {{ weather.lon if weather else 'null' }};
+<script>
+        // Use 'default' filter to handle null/None values cleanly
+        window.hourlyLabels = {{ hourly_labels | tojson | safe if hourly_labels is defined and hourly_labels else '[]' }};
+        window.hourlyData = {{ hourly_data | tojson | safe if hourly_data is defined and hourly_data else '[]' }};
+        
+        // Handle Lat/Lon safely
+        window.weatherLat = {{ weather.lat if weather and weather.lat else 'null' }};
+        window.weatherLon = {{ weather.lon if weather and weather.lon else 'null' }};
     </script>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
