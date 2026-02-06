@@ -1,14 +1,29 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 import requests
 from datetime import datetime
+import google.generativeai as genai  # AI লাইব্রেরি ইম্পোর্ট
 
 app = Flask(__name__)
 
-# OpenWeatherMap API Key
-API_KEY = "b140d4764e7e30ec785c37515da8ea5d"
+# --- API Configuration ---
+# 1. OpenWeatherMap API Key (আপনার দেওয়া কি)
+OWM_API_KEY = "b140d4764e7e30ec785c37515da8ea5d"
+
+# 2. Google Gemini API Key (⚠️ এখানে আপনার কপি করা Key টি বসান)
+GEMINI_API_KEY = "AIzaSyAofry6umpAq82-5XwqLAbEDL1GDjH95-s"
+
+# AI কনফিগারেশন
+try:
+    genai.configure(api_key=GEMINI_API_KEY)
+    model = genai.GenerativeModel('gemini-pro')
+except Exception as e:
+    print(f"Gemini Config Error: {e}")
+
+
+# --- Helper Functions ---
 
 def get_aqi_status(aqi_value):
-    """AQI ভ্যালু অনুযায়ী কালার এবং ডেসক্রিপশন রিটার্ন করবে"""
+    """AQI ভ্যালু অনুযায়ী কালার এবং ডেসক্রিপশন রিটার্ন করবে"""
     if aqi_value == 1: return "Good", "#00e676"      # Green
     elif aqi_value == 2: return "Fair", "#f1c40f"      # Yellow
     elif aqi_value == 3: return "Moderate", "#e67e22"  # Orange
@@ -17,7 +32,7 @@ def get_aqi_status(aqi_value):
     return "Unknown", "#95a5a6"
 
 def check_weather_alerts(weather_main, wind_speed, visibility, temp):
-    """আবহাওয়ার কন্ডিশন চেক করে অ্যালার্ট জেনারেট করবে"""
+    """আবহাওয়ার কন্ডিশন চেক করে অ্যালার্ট জেনারেট করবে"""
     alerts = []
     
     # বৃষ্টির অ্যালার্ট
@@ -40,9 +55,12 @@ def check_weather_alerts(weather_main, wind_speed, visibility, temp):
         
     return alerts
 
+
+# --- Routes ---
+
 @app.route('/', methods=['GET', 'POST'])
 def home():
-    # ভেরিয়েবল ইনিশিয়ালাইজেশন
+    # ভেরিয়েবল ইনিশিয়ালাইজেশন
     weather_data = None
     forecast_list = []
     hourly_labels = []
@@ -51,7 +69,7 @@ def home():
     alerts = []
     error_msg = None
     
-    # ইনপুট সিটি নেওয়া
+    # ইনপুট সিটি নেওয়া
     city = request.form.get('city')
     
     # যদি ইউজার কিছু না লেখে, ডিফল্ট হিসেবে 'Dhaka' দেখাবে
@@ -61,7 +79,7 @@ def home():
     if city:
         try:
             # ১. জিওকোডিং API (শহর থেকে অক্ষাংশ ও দ্রাঘিমাংশ বের করা)
-            geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={API_KEY}"
+            geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={OWM_API_KEY}"
             geo_res = requests.get(geo_url).json()
 
             if not geo_res:
@@ -70,10 +88,10 @@ def home():
             lat = geo_res[0]['lat']
             lon = geo_res[0]['lon']
 
-            # ২. আবহাওয়া, ফোরকাস্ট এবং AQI ডাটা ফেচ করা
-            weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
-            forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={API_KEY}&units=metric"
-            aqi_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={API_KEY}"
+            # ২. আবহাওয়া, ফোরকাস্ট এবং AQI ডাটা ফেচ করা
+            weather_url = f"https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={OWM_API_KEY}&units=metric"
+            forecast_url = f"https://api.openweathermap.org/data/2.5/forecast?lat={lat}&lon={lon}&appid={OWM_API_KEY}&units=metric"
+            aqi_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={OWM_API_KEY}"
 
             curr_res = requests.get(weather_url).json()
             fore_res = requests.get(forecast_url).json()
@@ -91,7 +109,7 @@ def home():
                     'color': aqi_color
                 }
 
-            # বর্তমান আবহাওয়া
+            # বর্তমান আবহাওয়া
             weather_main = curr_res['weather'][0]['main']
             temp = round(curr_res['main']['temp'])
             wind_speed = curr_res['wind']['speed']
@@ -103,11 +121,11 @@ def home():
             weather_data = {
                 'city': geo_res[0]['name'],
                 'country': geo_res[0]['country'],
-                'lat': lat,  # ম্যাপের জন্য অক্ষাংশ পাঠানো হলো
-                'lon': lon,  # ম্যাপের জন্য দ্রাঘিমাংশ পাঠানো হলো
+                'lat': lat,  # ম্যাপের জন্য
+                'lon': lon,  # ম্যাপের জন্য
                 'temp': temp,
                 'desc': curr_res['weather'][0]['description'].title(),
-                'main_condition': weather_main.lower(), # CSS ব্যাকগ্রাউন্ডের জন্য
+                'main_condition': weather_main.lower(),
                 'icon': curr_res['weather'][0]['icon'],
                 'humidity': curr_res['main']['humidity'],
                 'wind': wind_speed,
@@ -116,17 +134,16 @@ def home():
                 'feels_like': round(curr_res['main']['feels_like'])
             }
 
-            # গ্রাফের ডাটা (পরবর্তী ২৪ ঘণ্টা - ৮টি পয়েন্ট)
+            # গ্রাফের ডাটা (পরবর্তী ২৪ ঘণ্টা)
             for item in fore_res['list'][:8]:
-                hour = datetime.fromtimestamp(item['dt']).strftime('%I %p') # যেমন: 02 PM
+                hour = datetime.fromtimestamp(item['dt']).strftime('%I %p')
                 hourly_labels.append(hour)
                 hourly_data.append(round(item['main']['temp']))
 
-            # ৫ দিনের ফোরকাস্ট (প্রতিদিন ১টি করে)
+            # ৫ দিনের ফোরকাস্ট
             seen_days = set()
             for item in fore_res['list']:
-                day_name = datetime.fromtimestamp(item['dt']).strftime('%a') # যেমন: Mon
-                # আজকের দিন বাদ দিয়ে পরবর্তী দিনগুলো নেব
+                day_name = datetime.fromtimestamp(item['dt']).strftime('%a')
                 if day_name not in seen_days and day_name != datetime.now().strftime('%a'):
                     forecast_list.append({
                         'day': day_name,
@@ -140,7 +157,6 @@ def home():
             print(f"Error fetching data: {e}")
             error_msg = "City not found. Please check the spelling and try again."
 
-    # টেমপ্লেটে ডাটা পাঠানো
     return render_template('index.html', 
                            weather=weather_data, 
                            forecast=forecast_list, 
@@ -149,6 +165,43 @@ def home():
                            aqi=aqi_data,
                            alerts=alerts,
                            error=error_msg)
+
+
+# --- New Route: AI Chatbot ---
+@app.route('/ask_ai', methods=['POST'])
+def ask_ai():
+    try:
+        data = request.json
+        user_question = data.get('question')
+        weather_context = data.get('context') # ফ্রন্টএন্ড থেকে আসা ডাটা
+        
+        # AI-এর জন্য প্রম্পট তৈরি করা
+        prompt = f"""
+        You are 'WeatherBot', a smart AI assistant for a Weather App.
+        
+        Current Weather Data for the user's location:
+        {weather_context}
+        
+        User's Question: "{user_question}"
+        
+        Instructions:
+        1. Answer the question specifically using the provided weather data.
+        2. Keep the answer short (within 2-3 sentences).
+        3. Be friendly and use emojis (e.g., 🌧️, ☀️).
+        4. If the question is not about weather, politely say you only know about weather.
+        5. If asked about clothing (umbrella/jacket), give advice based on temp/rain.
+        """
+        
+        # AI কে কল করা
+        response = model.generate_content(prompt)
+        ai_reply = response.text
+        
+        return jsonify({'answer': ai_reply})
+        
+    except Exception as e:
+        print(f"AI Error: {e}")
+        return jsonify({'answer': "দুঃখিত, আমি এখন উত্তর দিতে পারছি না। একটু পরে আবার চেষ্টা করুন! 🤖"}), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True)

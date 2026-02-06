@@ -192,7 +192,7 @@
         </div>
         {% endif %}
 
-<footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; font-size: 13px; opacity: 0.8; line-height: 1.6;">
+        <footer style="margin-top: 50px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center; font-size: 13px; opacity: 0.8; line-height: 1.6;">
             <p>Designed and Developed by <strong style="color: var(--accent);">Md. Shakawat Hossain Faravi</strong>.</p>
             
             <p style="font-size: 11px; max-width: 700px; margin: 10px auto;">
@@ -211,7 +211,25 @@
 
     </div>
 
-<script>
+    <div class="chat-toggle" onclick="toggleChat()">
+        <i class="fas fa-robot"></i>
+    </div>
+
+    <div class="chat-container" id="chatBox">
+        <div class="chat-header">
+            <span><i class="fas fa-magic"></i> AI Assistant</span>
+            <i class="fas fa-times" onclick="toggleChat()" style="cursor: pointer;"></i>
+        </div>
+        <div class="chat-body" id="chatBody">
+            <div class="bot-msg">হ্যালো! আমি WeatherBot। আবহাওয়া নিয়ে কোনো প্রশ্ন আছে? 🤖</div>
+        </div>
+        <div class="chat-input">
+            <input type="text" id="userQuestion" placeholder="Ask about rain, outfit..." onkeypress="handleEnter(event)">
+            <button onclick="askAI()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
         // Use 'default' filter to handle null/None values cleanly
         window.hourlyLabels = {{ hourly_labels | tojson | safe if hourly_labels is defined and hourly_labels else '[]' }};
         window.hourlyData = {{ hourly_data | tojson | safe if hourly_data is defined and hourly_data else '[]' }};
@@ -219,6 +237,16 @@
         // Handle Lat/Lon safely
         window.weatherLat = {{ weather.lat if weather and weather.lat else 'null' }};
         window.weatherLon = {{ weather.lon if weather and weather.lon else 'null' }};
+
+        // NEW: Weather Data for AI Context (Pass data to JS)
+        window.weatherContext = {
+            city: "{{ weather.city if weather else 'Unknown' }}",
+            temp: "{{ weather.temp if weather else '0' }}",
+            condition: "{{ weather.desc if weather else 'Unknown' }}",
+            humidity: "{{ weather.humidity if weather else '0' }}",
+            wind: "{{ weather.wind if weather else '0' }}",
+            feels_like: "{{ weather.feels_like if weather else '0' }}"
+        };
     </script>
 
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>

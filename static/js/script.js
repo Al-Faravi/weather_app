@@ -4,20 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateClock() {
         const now = new Date();
         const timeString = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-        const dateString = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-
+        
         // নতুন ডিজাইনের জন্য (Smart Dashboard)
         const clockElem = document.getElementById('clock');
         if (clockElem) {
             clockElem.innerText = timeString;
-        }
-
-        // পুরাতন ডিজাইনের ব্যাকআপ (যদি HTML আগেরটা থাকে)
-        const dateElemOld = document.getElementById('current-date');
-        const timeElemOld = document.getElementById('current-time');
-        if (dateElemOld && timeElemOld) {
-            dateElemOld.innerText = dateString;
-            timeElemOld.innerText = timeString;
         }
     }
     setInterval(updateClock, 1000);
@@ -118,7 +109,6 @@ document.addEventListener('DOMContentLoaded', () => {
                             li.onclick = () => {
                                 searchInput.value = city.matching_full_name.split(',')[0];
                                 suggestionsList.style.display = 'none';
-                                // document.getElementById('search-form').submit(); // অটো সাবমিট (অপশনাল)
                             };
                             suggestionsList.appendChild(li);
                         });
@@ -132,7 +122,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.addEventListener('click', (e) => {
-            if (!e.target.closest('.search-box') && !e.target.closest('.search-form')) {
+            if (!e.target.closest('.search-box')) {
                 suggestionsList.style.display = 'none';
             }
         });
@@ -145,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- ৪. Leaflet Live Weather Map (নতুন ফিচার) ---
+    // --- ৪. Leaflet Live Weather Map ---
     const API_KEY = "b140d4764e7e30ec785c37515da8ea5d"; // OpenWeatherMap Key
     const mapContainer = document.getElementById('weatherMap');
 
@@ -156,22 +146,22 @@ document.addEventListener('DOMContentLoaded', () => {
         const map = L.map('weatherMap', {
             center: [window.weatherLat, window.weatherLon],
             zoom: 10,
-            zoomControl: false, // ডিফল্ট কন্ট্রোল বন্ধ (ক্লিন লুক)
+            zoomControl: false,
             attributionControl: false
         });
 
-        // ২. ডার্ক বেস ম্যাপ লেয়ার (CartoDB Dark Matter)
+        // ২. ডার্ক বেস ম্যাপ লেয়ার
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 19,
             subdomains: 'abcd'
         }).addTo(map);
 
-        // ৩. মেঘের লেয়ার (Clouds Layer)
+        // ৩. মেঘের লেয়ার
         L.tileLayer(`https://tile.openweathermap.org/map/clouds_new/{z}/{x}/{y}.png?appid=${API_KEY}`, {
             opacity: 0.8
         }).addTo(map);
 
-        // ৪. বৃষ্টির লেয়ার (Precipitation Layer)
+        // ৪. বৃষ্টির লেয়ার
         L.tileLayer(`https://tile.openweathermap.org/map/precipitation_new/{z}/{x}/{y}.png?appid=${API_KEY}`, {
             opacity: 0.6
         }).addTo(map);
@@ -179,7 +169,71 @@ document.addEventListener('DOMContentLoaded', () => {
         // ৫. লোকেশন মার্কার
         L.marker([window.weatherLat, window.weatherLon])
             .addTo(map)
-            .bindPopup(`<b style="color:black;">Currently Here</b>`) // পপআপ টেক্সট
+            .bindPopup(`<b style="color:black;">Current Location</b>`)
             .openPopup();
     }
 });
+
+
+// --- ৫. AI Chatbot Logic (NEW) ---
+
+function toggleChat() {
+    const chatBox = document.getElementById('chatBox');
+    if (chatBox.style.display === 'flex') {
+        chatBox.style.display = 'none';
+    } else {
+        chatBox.style.display = 'flex';
+        // চ্যাটবক্স ওপেন হলে ফোকাস ইনপুটে নাও
+        setTimeout(() => document.getElementById('userQuestion').focus(), 100);
+    }
+}
+
+function handleEnter(e) {
+    if (e.key === 'Enter') askAI();
+}
+
+async function askAI() {
+    const inputField = document.getElementById('userQuestion');
+    const question = inputField.value.trim();
+    const chatBody = document.getElementById('chatBody');
+
+    if (!question) return;
+
+    // 1. ব্যবহারকারীর প্রশ্ন শো করা
+    chatBody.innerHTML += `<div class="user-msg">${question}</div>`;
+    inputField.value = '';
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    // 2. লোডিং মেসেজ দেখানো
+    const loadingId = 'loading-' + Date.now();
+    chatBody.innerHTML += `<div class="bot-msg" id="${loadingId}">টাইপ করছি... ✍️</div>`;
+    chatBody.scrollTop = chatBody.scrollHeight;
+
+    try {
+        // 3. ব্যাকএন্ডে রিকোয়েস্ট পাঠানো
+        const response = await fetch('/ask_ai', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                question: question,
+                context: window.weatherContext // HTML থেকে আসা আবহাওয়ার ডাটা
+            })
+        });
+
+        const data = await response.json();
+        
+        // 4. উত্তর আপডেট করা
+        const loadingElem = document.getElementById(loadingId);
+        if (loadingElem) loadingElem.remove();
+        
+        chatBody.innerHTML += `<div class="bot-msg">${data.answer}</div>`;
+
+    } catch (error) {
+        console.error("AI Error:", error);
+        const loadingElem = document.getElementById(loadingId);
+        if (loadingElem) {
+            loadingElem.innerHTML = "দুঃখিত, সার্ভারে সমস্যা হচ্ছে। আবার চেষ্টা করুন। ⚠️";
+        }
+    }
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
