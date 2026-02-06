@@ -1,2 +1,4 @@
-Flask
-requests
+Flask==3.0.0
+requests==2.31.0
+google-generativeai==0.3.2
+gunicorn
